@@ -253,6 +253,35 @@ export const parse = (text: string): TxtParentNode => {
                         .reduce((a, b) => [...a, ...b], [])
                     }
                   ];
+                case "begin":
+                case "end":
+                  return [
+                    {
+                      depth: 2,
+                      loc: {
+                        start: {
+                          line: node.location.start.line,
+                          column: node.location.start.column - 1
+                        },
+                        end: {
+                          line: node.location.end.line,
+                          column: node.location.end.column - 1
+                        }
+                      },
+                      range: [
+                        node.location.start.offset,
+                        node.location.end.offset
+                      ],
+                      raw: text.slice(
+                        node.location.start.offset,
+                        node.location.end.offset
+                      ),
+                      type: ASTNodeTypes.Code,
+                      children: node.args
+                        .map(transform)
+                        .reduce((a, b) => [...a, ...b], [])
+                    }
+                  ];
                 case "subsection":
                   return [
                     {
@@ -330,7 +359,7 @@ export const parse = (text: string): TxtParentNode => {
                     node.location.start.offset,
                     node.location.end.offset
                   ),
-                  type: ASTNodeTypes.Str,
+                  type: ASTNodeTypes.Code,
                   children: transform(node.arg)
                 }
               ];
@@ -517,6 +546,7 @@ export const parse = (text: string): TxtParentNode => {
             case "math.character":
             case "command.def":
             case "commandParameter":
+            default:
               return [];
           }
         })
